@@ -7,6 +7,7 @@ import MedicationChecker from './MedicationChecker';
 import DietReference from './DietReference';
 import HealthAssistant from './HealthAssistant';
 import LifestyleGuide from './LifestyleGuide';
+import Profile from './Profile';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/diet" element={<DietReference />} />
             <Route path="/assistant" element={<HealthAssistant />} />
             <Route path="/lifestyle" element={<LifestyleGuide />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </BrowserRouter>
       )}

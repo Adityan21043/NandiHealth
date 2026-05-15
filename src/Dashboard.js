@@ -19,6 +19,7 @@ function Dashboard({ signOut, user }) {
           </div>
         </div>
         <button onClick={signOut} style={{ fontSize: '12px', color: '#8A9BB0', background: 'none', border: '1px solid #D8E3EF', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer' }}>Sign out</button>
+        <button onClick={() => navigate('/profile')} style={{ fontSize: '12px', color: '#185FA5', background: 'none', border: '1px solid #D8E3EF', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', marginRight: '8px' }}> 👤 Profile</button>
       </div>
 
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
