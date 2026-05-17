@@ -1,8 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 function Dashboard({ signOut, user }) {
   const navigate = useNavigate();
+  const [glasses, setGlasses] = useState(0);
+  const [target] = useState(8);
+  const today = new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    fetchAuthSession().then(session => {
+      const id = session.tokens?.idToken?.payload?.email || 'user';
+      const log = localStorage.getItem(`nandihealth-hydration-${id}`);
+      if (log) {
+        const parsed = JSON.parse(log);
+        setGlasses(parsed[today] || 0);
+      }
+    });
+  }, [today]);
+
+  const pct = Math.min(Math.round((glasses / target) * 100), 100);
+  const remaining = Math.max(target - glasses, 0);
 
   return (
     <div style={{ fontFamily: 'DM Sans, sans-serif', background: '#F4F7FB', minHeight: '100vh', padding: '0 0 80px' }}>
@@ -18,8 +36,10 @@ function Dashboard({ signOut, user }) {
             <div style={{ fontSize: '11px', color: '#8A9BB0' }}>Single kidney management</div>
           </div>
         </div>
-        <button onClick={signOut} style={{ fontSize: '12px', color: '#8A9BB0', background: 'none', border: '1px solid #D8E3EF', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer' }}>Sign out</button>
-        <button onClick={() => navigate('/profile')} style={{ fontSize: '12px', color: '#185FA5', background: 'none', border: '1px solid #D8E3EF', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', marginRight: '8px' }}> 👤 Profile</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => navigate('/profile')} style={{ fontSize: '12px', color: '#185FA5', background: 'none', border: '1px solid #D8E3EF', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer' }}>👤 Profile</button>
+          <button onClick={signOut} style={{ fontSize: '12px', color: '#8A9BB0', background: 'none', border: '1px solid #D8E3EF', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer' }}>Sign out</button>
+        </div>
       </div>
 
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -28,7 +48,7 @@ function Dashboard({ signOut, user }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
           {[
             { val: '1', lbl: 'Active kidney', tag: 'Monitored', tagColor: '#EAF3DE', tagText: '#27500A' },
-            { val: '5/8', lbl: 'Glasses today', tag: '3 remaining', tagColor: '#E6F1FB', tagText: '#0C447C' },
+            { val: `${glasses}/${target}`, lbl: 'Glasses today', tag: `${remaining} remaining`, tagColor: '#E6F1FB', tagText: '#0C447C' },
             { val: '0', lbl: 'Flags today', tag: 'All clear', tagColor: '#EAF3DE', tagText: '#27500A' },
           ].map((s, i) => (
             <div key={i} style={{ background: '#fff', border: '1px solid #D8E3EF', borderRadius: '12px', padding: '14px 12px' }}>
@@ -46,15 +66,15 @@ function Dashboard({ signOut, user }) {
         </div>
 
         {/* HYDRATION */}
-        <div style={{ background: '#fff', border: '1px solid #D8E3EF', borderRadius: '12px', padding: '14px 16px' }}>
+        <div onClick={() => navigate('/diet')} style={{ background: '#fff', border: '1px solid #D8E3EF', borderRadius: '12px', padding: '14px 16px', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#0F2A4A' }}>💧 Hydration log</span>
-            <span style={{ fontSize: '12px', fontWeight: '600', color: '#185FA5' }}>62% of daily target</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: '#185FA5' }}>{pct}% of daily target</span>
           </div>
           <div style={{ height: '6px', background: '#F4F7FB', borderRadius: '3px', marginBottom: '8px' }}>
-            <div style={{ height: '6px', width: '62.5%', background: '#378ADD', borderRadius: '3px' }}></div>
+            <div style={{ height: '6px', width: `${pct}%`, background: '#378ADD', borderRadius: '3px', transition: 'width 0.3s' }}></div>
           </div>
-          <div style={{ fontSize: '11px', color: '#8A9BB0' }}>Target: 8 glasses · Logged: 5 · Remaining: 3</div>
+          <div style={{ fontSize: '11px', color: '#8A9BB0' }}>Target: {target} glasses · Logged: {glasses} · Remaining: {remaining}</div>
         </div>
 
         {/* TOOLS */}
@@ -77,7 +97,6 @@ function Dashboard({ signOut, user }) {
           ))}
         </div>
 
-        {/* DISCLAIMER */}
         <div style={{ textAlign: 'center', fontSize: '11px', color: '#8A9BB0', lineHeight: '1.5', padding: '8px' }}>
           For educational reference only · Not a substitute for medical advice
         </div>
